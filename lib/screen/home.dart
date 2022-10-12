@@ -105,10 +105,13 @@ class _HomeState extends State<Home> {
               children: [
                 ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
-                    child: Image.asset(
-                      datas[index]['image']!,
-                      width: 100,
-                      height: 100,
+                    child: Hero(
+                      tag: datas[index]['image']!,
+                      child: Image.asset(
+                        datas[index]['image']!,
+                        width: 100,
+                        height: 100,
+                      ),
                     )
                 ),
                 Expanded(
