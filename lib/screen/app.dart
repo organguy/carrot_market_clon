@@ -1,3 +1,4 @@
+import 'package:carrot_market_clone/screen/favorite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -39,7 +40,7 @@ class _AppState extends State<App> {
         return Container();
 
       case 4:
-        return Container();
+        return const Favorite();
     }
 
     return Container();

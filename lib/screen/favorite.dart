@@ -1,85 +1,40 @@
+import 'dart:convert';
+
 import 'package:carrot_market_clone/repository/contents_repository.dart';
 import 'package:carrot_market_clone/screen/detail_content.dart';
 import 'package:carrot_market_clone/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class Favorite extends StatefulWidget {
+  const Favorite({Key? key}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Favorite> createState() => _FavoriteState();
 }
 
-class _HomeState extends State<Home> {
-  late String currentLocation;
+class _FavoriteState extends State<Favorite> {
+
   late ContentsRepository contentsRepository;
-  final Map<String, String> locationTypeToString = {
-    "ara" : "아라동",
-    "ora" : "오라동",
-    "donam" : "도남동",
-  };
 
   @override
   void initState() {
     super.initState();
-    currentLocation = 'ara';
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     contentsRepository = ContentsRepository();
   }
 
   AppBar _initAppbar(){
     return AppBar(
-      title: GestureDetector(
-        onTap: (){
-          debugPrint('click');
-        },
-        child: PopupMenuButton<String>(
-          offset: const Offset(-5, 30),
-          shape: ShapeBorder.lerp(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-              1
-          ),
-          onSelected: (String where){
-            setState(() {
-              currentLocation = where;
-            });
-          },
-          itemBuilder: (context){
-            return [
-              const PopupMenuItem(value: 'ara', child: Text('아라동')),
-              const PopupMenuItem(value: 'ora', child: Text('오라동')),
-              const PopupMenuItem(value: 'donam', child: Text('도남동')),
-            ];
-          },
-          child: Row(
-            children: [
-              Text(locationTypeToString[currentLocation]!),
-              const Icon(Icons.arrow_drop_down)
-            ],
-          ),
+      title: const Text(
+        '관심목록',
+        style: TextStyle(
+          fontSize: 15,
         ),
       ),
-      elevation: 1,
-      actions: [
-        IconButton(onPressed: (){}, icon: const Icon(Icons.search)),
-        IconButton(onPressed: (){}, icon: const Icon(Icons.tune)),
-        IconButton(onPressed: (){}, icon: SvgPicture.asset('assets/svg/bell.svg', width: 22,)),
-      ],
     );
   }
 
-  _loadContents(){
-    return contentsRepository.loadContentsFromLocation(currentLocation);
-  }
-
-  _makeDataList(List<Map<String, String>> datas){
+  _makeDataList(List<dynamic> datas){
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       itemBuilder: (context, index){
@@ -87,7 +42,8 @@ class _HomeState extends State<Home> {
           onTap: (){
             Navigator.push(context, MaterialPageRoute(
                 builder: (context){
-                  return DetailContent(data: datas[index]);
+                  Map<String, String> json = jsonDecode(jsonEncode(datas[index]));
+                  return DetailContent(data: json);
                 }));
           },
           child: Container(
@@ -169,31 +125,35 @@ class _HomeState extends State<Home> {
 
   Widget _initBody(){
     return FutureBuilder(
-      future: _loadContents(),
-      builder: (context, snapshot){
+        future: _loadFavorites(),
+        builder: (context, snapshot){
 
-        if(snapshot.connectionState != ConnectionState.done){
-          return const Center(child: CircularProgressIndicator(
-            color: Colors.blue,
-          ),);
+          if(snapshot.connectionState != ConnectionState.done){
+            return const Center(child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),);
+          }
+
+          if(!snapshot.hasData){
+            return const Center(
+              child: Text('해당지역에 데이터가 없습니다.'),
+            );
+          }
+
+          if(snapshot.hasError){
+            return const Center(
+              child: Text('데이터가 오류!!!'),
+            );
+          }
+
+          List<dynamic> datas = snapshot.data as List<dynamic>;
+          return _makeDataList(datas);
         }
-
-        if(!snapshot.hasData){
-          return const Center(
-            child: Text('해당지역에 데이터가 없습니다.'),
-          );
-        }
-
-        if(snapshot.hasError){
-          return const Center(
-            child: Text('데이터가 오류!!!'),
-          );
-        }
-
-        List<Map<String, String>> datas = snapshot.data as List<Map<String, String>>;
-        return _makeDataList(datas);
-      }
     );
+  }
+
+  Future<List<dynamic>> _loadFavorites() async{
+    return await contentsRepository.loadFavoriteContents();
   }
 
   @override
