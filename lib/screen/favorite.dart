@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:carrot_market_clone/repository/contents_repository.dart';
 import 'package:carrot_market_clone/screen/detail_content.dart';
 import 'package:carrot_market_clone/utils/utils.dart';
@@ -42,8 +40,9 @@ class _FavoriteState extends State<Favorite> {
           onTap: (){
             Navigator.push(context, MaterialPageRoute(
                 builder: (context){
-                  Map<String, String> json = jsonDecode(jsonEncode(datas[index]));
-                  return DetailContent(data: json);
+                  Map<String, dynamic> mapDynamic =  Map<String, dynamic>.from(datas[index]);
+                  Map<String, String> mapString = mapDynamic.map((key, value) => MapEntry(key, value.toString()));
+                  return DetailContent(data: mapString);
                 }));
           },
           child: Container(
